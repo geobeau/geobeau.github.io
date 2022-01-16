@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Shape painter</title>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+  </head>
+  <body>
+    <canvas id="editing-canvas" width="280" height="280" style="border:1px solid #000000;"></canvas>
+    <canvas id="result-canvas" width="14" height="14" style="border:1px solid #000000;"></canvas>
+    <button id="save">Save</button>
+	<script>
+        var editingCanvas = document.getElementById("editing-canvas");
+        var resultCanvas = document.getElementById("result-canvas");
+        const black = 'black'
+        const white = 'white'
+        const scale = 20
+        var drawing = false
+        var drawingColor = black
+        var ctx = editingCanvas.getContext("2d");
+        var ctxRes = resultCanvas.getContext("2d");
+        ctx.fillStyle = white
+        ctxRes.fillStyle = white
+        ctx.fillRect(0, 0, 280, 280);
+        ctxRes.fillRect(0, 0, 14, 14);
+        ctx.fillStyle = black
+        ctxRes.fillStyle = black
+
+        function updateFillStyle() {
+            var ctx = editingCanvas.getContext("2d");
+            var ctxRes = resultCanvas.getContext("2d");
+            var x = event.layerX - (event.layerX % scale);
+            var y = event.layerY - (event.layerY % scale);
+            
+            var pixel = ctx.getImageData(x, y, scale, scale);
+            console.log(x,y, pixel.data[0], pixel.data[3]);
+            if (pixel.data[0] == 255) {
+                console.log("switch to black")
+                ctx.fillStyle = black
+                ctxRes.fillStyle = black
+            } else {
+                console.log("switch to white")
+                ctx.fillStyle = white
+                ctxRes.fillStyle = white
+            }
+        }
+
+        function pick(event) {
+            var ctx = editingCanvas.getContext("2d");
+            var ctxRes = resultCanvas.getContext("2d");
+            var x = event.layerX - (event.layerX % scale);
+            var y = event.layerY - (event.layerY % scale);
+            // console.log(x,y);
+            ctx.fillRect(x, y, scale, scale);
+            ctxRes.fillRect(x / scale, y / scale, 1, 1);
+        }
+
+        function save() {
+            var image = resultCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            const link = document.createElement('a');
+            link.download = 'img.png';
+            link.href = image;
+            link.click();
+            link.delete;
+        }
+
+        editingCanvas.addEventListener('mousemove', function(event) {
+            if (drawing) {
+                pick(event);
+            }
+        });
+        window.addEventListener('mouseup', function(event) {
+            drawing = false
+        });
+        editingCanvas.addEventListener('mousedown', function(event) {
+            drawing = true
+            updateFillStyle()
+            pick(event);
+        });
+
+        document.getElementById("save").addEventListener('click', function(event) {
+            save()
+        });
+    </script>
+  </body>
+</html>
